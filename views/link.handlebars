@@ -1,0 +1,528 @@
+{{#section 'head'}}
+	<style>
+		body {
+			padding: 10px;
+			word-wrap: break-word;
+		}
+		a {
+			color: #333;
+		}
+		.inline {
+			display: inline-flex;
+		}
+		#reset-view {
+			right: 40px;
+			position: absolute;
+			margin-top: -5px;
+		}
+	</style>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+	<style>
+		.node {
+			fill: rgba(88, 155, 208, 1.0);
+			stroke: #FFFFFF;
+			stroke-width: 1px;
+		}
+		.link {
+			fill: none;
+			stroke: #666;
+			stroke-width: 1px;
+		}
+		#default {
+			fill: #ccc;
+		}
+		#KNOWS {
+			fill: rgba(232, 75, 68, 1.0);
+		}
+		.link.default {
+			stroke: #ccc;
+		}
+		.link.KNOWS {
+			stroke: rgba(232, 75, 68, 1.0);
+		}
+		circle {
+			fill: rgba(88, 155, 208, 1.0);
+			stroke: #FFFFFF;
+			stroke-width: 1.5px;
+		}
+		text {
+			font: 10px sans-serif;
+			pointer-events: none;
+			text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+		}
+		#context-menu {
+			position: absolute;
+			width: 130px;
+		}
+	</style>
+{{/section}}
+
+<div class="container">
+	<!-- Header -->
+	<div class="page-header text-center">
+		<h1><span class="fa fa-share-alt-square"></span> Link Analysis</h1>
+	</div>
+
+	<div class="row">
+		<!-- Left Panel -->
+		<div class="col-sm-4">
+			<!-- User Panel -->
+			<div class="well">
+				<h3><span class="fa fa-user"></span> User </h3>
+				<p>
+					<strong>Name</strong>: {{ user.local.fname }} {{ user.local.lname }}<br>
+					<strong>Email</strong>: {{ user.local.email }}
+				</p>
+				<a href="/logout" class="btn btn-default btn-sm"><span class="fa fa-sign-out"></span> Logout</a>
+			</div>
+			<!-- Tasks Panel -->
+			<div class="well">
+				<h3><span class="fa fa-tasks"></span> Tasks</h3>
+				<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+					<!-- Search Panel -->
+					<div class="panel panel-default">
+						<!-- Search Panel header -->
+						<div class="panel-heading" id="headingTwo" role="tab">
+							<h4 class="panel-title inline">
+								<div>
+									<span class="fa fa-search"></span><a class="collapsed" href="#collpaseSearch" data-toggle="collapse" data-parent="#accordion" aria-expanded="true" aria-controls="collpaseSearch">
+										Search
+									</a>
+								</div>
+								<div id="reset-view">
+									<a href="#" class="btn" role="button" data-toggle="tooltip" title="Reset the data" data-placement="left">
+										<span class="fa fa-undo"></span>
+									</a>
+								</div>							
+								
+							</h4>
+						</div>
+						<div id="collpaseSearch" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingTwo">
+							<ul class="list-group">
+								<!-- Q1 -->
+								<li class="list-group-item">
+									<h5>Who are related to ...?</h5>
+									<div class="input-group">
+										<input type="text" class="form-control" placeholder="Name: e.g. Emil" data-provide="typeahead">
+										<div class="input-group-btn">
+											<button id="btn-search-related" class="btn btn-default" type="button">Go</button>
+										</div>
+									</div>
+								</li>
+								<!-- Q2 -->
+								<li class="list-group-item">
+									<h5>What are the relationships between people from ...?</h5>
+									<div class="input-group">
+										<input type="text" class="form-control" placeholder="Place: e.g. Sweden" data-provide="typeahead">
+										<div class="input-group-btn">
+											<button id="btn-search-where" class="btn btn-default" type="button">Go</button>
+										</div>
+									</div>
+								</li>
+								<!-- Q3 -->
+								<li class="list-group-item">
+									<h5>Who are related to people from ...?</h5>
+									<div class="input-group">
+										<input type="text" class="form-control" placeholder="Place: e.g. Sweden" data-provide="typeahead">
+										<div class="input-group-btn">
+											<button id="btn-search-related-where" class="btn btn-default" type="button">Go</button>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<!-- Edit Panel -->
+					<div class="panel panel-default">
+						<div class="panel-heading" id="headingOne" role="tab">
+							<h4 class="panel-title">
+								<span class="fa fa-pencil-square-o"></span><a href="#collpaseEdit" data-toggle="collapse" data-parent="#accordion" aria-expanded="false" aria-controls="collpaseEdit">
+									Edit
+								</a>
+							</h4>
+						</div>
+						<div id="collpaseEdit" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+							<div class="panel-body"></div>
+						</div>
+					</div>	
+				</div>
+			</div>
+		</div>
+		<!-- Right Panel -->
+		<div class="col-sm-8">
+			<!-- Visualization Panel -->
+			<div class="well" role="tabpanel">
+
+				<ul class="nav nav-tabs" role="tablist">
+					<li role="presentation" class="active"><a href="#graph" aria-controls="graph" role="tab" data-toggle="tab">Graph</a></li>
+					<li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab">Table</a></li>
+				</ul>
+
+				<div id="viz-container" class="tab-content">
+					<!-- SVG Panel -->
+					<div role="tabpanel" class="tab-pane active" id="graph">
+						<div id="svg-container"></div>
+					</div>
+					<!-- Table Panel -->
+					<div role="tabpanel" class="tab-pane" id="table">
+						<table class="table table-striped">
+							<tr>
+								<th>Id</th>
+								<th>Name</th>
+								<th>From</th>
+							</tr>
+							{{#each nodeObject}}
+								<tr>
+									<td>{{ id }}</td>
+									<td>{{ name }}</td>
+									<td>{{ from }}</td>
+								</tr>
+							{{/each}}
+						</table>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="hover-tooltip">
+    <h4 class="dialog-title"></h4>
+</div>
+<div id="context-menu"></div>
+
+{{#section 'jquery'}}
+	<!-- RightClick Context Menu -->
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/flick/jquery-ui.css" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
+	<script src="lib/bootstrap3-typeahead.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
+	<script src="models/person.js"></script>
+	<script src="collections/people.js"></script>
+	<!-- Visualization Script -->
+	<script>
+	$('document').ready(function() {
+		console.log({{{relationships}}});
+		console.log({{{nodes}}});
+
+		// Initialize tooltips
+		$('[data-toggle="tooltip"]').tooltip({container: 'body'})
+
+		// Load typeahead autocomplete
+		$('#btn-search-related').parent().siblings().typeahead({ source: _.pluck({{{nodes}}},'name') });
+		$('#btn-search-where').parent().siblings().typeahead({ source: _.uniq(_.pluck({{{nodes}}},'from')) });
+		$('#btn-search-related-where').parent().siblings().typeahead({ source: _.uniq(_.pluck({{{nodes}}},'from')) });
+		
+		var links = {{{relationships}}};
+		var nodes = {};
+
+		// Compute the distinct nodes from the links.
+		links.forEach(function(link){
+			link.source = nodes[link.source] || (nodes[link.source] = { name: link.source });
+			link.target = nodes[link.target] || (nodes[link.target] = { name: link.target });
+		})
+
+		var width = 710,
+			height = 600,
+			NODE_RADIUS = 5, // default 5
+			LINK_DISTANCE = 60; // default 40
+
+		loadSvg(nodes, links, false);
+
+		// Search People Controller
+		$('#reset-view').on('click', function() {
+			var people = new PeopleCollection();
+
+			people.fetch({
+				method: 'POST',
+				success: function() {
+					var data = people.toJSON()[0];
+					updatePanel(data);
+				},
+				error: function(err) {
+					console.log("Error--", err);
+				}
+			})
+		});
+
+		$('#btn-search-related').on('click', function() {
+			var nameField = $(this).parent().siblings().val();
+			
+			// Create new RelatedCollection.
+			var related = new RelatedCollection();
+
+			related.fetch({ 
+				method: 'POST',
+				data: { name: nameField },
+				success: function() {
+					var data = related.toJSON()[0];
+					updatePanel(data);
+				},
+				error: function(err) {
+					console.log("Error--", err);
+				}
+			});
+		});
+		$('#btn-search-where').on('click', function() {
+			var fromField = $(this).parent().siblings().val();
+
+			// Create new RelatedWhereCollection.
+			var where = new WhereCollection();
+
+			where.fetch({
+				method: 'POST',
+				data: { from: fromField },
+				success: function() {
+					var data = where.toJSON()[0];
+					updatePanel(data);
+				},
+				error: function(err) {
+					console.log("Error--", err);
+				}
+			});
+		});
+		$('#btn-search-related-where').on('click', function() {
+			var fromField = $(this).parent().siblings().val();
+
+			// Create new RelatedWhereCollection.
+			var where = new RelatedWhereCollection();
+
+			where.fetch({
+				method: 'POST',
+				data: { from: fromField },
+				success: function() {
+					var data = where.toJSON()[0];
+					updatePanel(data);
+				},
+				error: function(err) {
+					console.log("Error--", err);
+				}
+			});
+		});
+
+		function updatePanel(data) {
+			// Reset DOM
+			force.stop();
+			$('#svg-container').empty();
+
+			// Reset data
+			var links = data.relationships;
+			var nodes = {};
+			links.forEach(function(link){
+				link.source = nodes[link.source] || (nodes[link.source] = { name: link.source });
+				link.target = nodes[link.target] || (nodes[link.target] = { name: link.target });
+			})
+			// Reload!
+			loadSvg(nodes, links, false);
+
+			// Update Table
+			var table = $('#table').find('table');
+			table.empty();
+			table.append($('<tr>')
+				.append($('<th>').text('Id'))
+				.append($('<th>').text('Name'))
+				.append($('<th>').text('From')));
+			data.nodeObject.forEach(function(node) {
+				table.append($('<tr>')
+					.append($('<td>').text(node.id))
+					.append($('<td>').text(node.name))
+					.append($('<td>').text(node.from)));
+			})
+		}
+
+		$(window).on('resize', resizeSvg);
+
+		function resizeSvg() {
+			svg.attr('width', $('#viz-container').width());
+		}
+		
+		function loadSvg(_nodes, _links, ifFixed){
+			force = d3.layout.force()
+				.nodes(d3.values(_nodes))
+				.links(_links)
+				.size([width, height])
+				.linkDistance(LINK_DISTANCE)
+				.linkStrength(1)
+				.friction(0.92)
+				.charge(-50)
+				.on('tick', tick)
+				.start();
+
+			drag = force.drag()
+				.on("dragstart", dragstart)
+				.on("drag", dragmove)
+				.on("dragend", dragend);
+
+			svg = d3.select('#svg-container').append('svg')
+				.attr('width', width)
+				.attr('height', height);
+
+			// Per-type markers, as they don't inherit styles.
+			svg.append('defs').selectAll('marker')
+				.data(['default','KNOWS'])
+				.enter().append('marker')
+					.attr('id', function(d) { return d; })
+					.attr('viewBox', '0 -5 10 10') 
+					.attr('refX', 17)
+					.attr('refY', 0)
+					.attr('markerWidth', 7)
+					.attr('markerHeight', 7)
+					.attr('orient', 'auto')
+				.append('path')
+					.attr('d', 'M0,-3L13,0L0,3');
+
+			path = svg.append('g').attr('class','g1').selectAll('line')
+				.data(force.links());
+
+			path.enter().append('line')
+					.attr('class', function(d) { return 'link ' + d.type; })
+					.attr('marker-end', function(d) { return 'url(#' + d.type + ')'; });
+
+			circle = svg.append('g').attr('class','g2').selectAll('circle')
+				.data(force.nodes());
+
+			circle.enter().append('circle')
+				.attr('r', NODE_RADIUS)
+				.attr('id', function(d, i) { return 'node_' + i; })
+				.attr('name', function(d) { return d.name; })
+				.attr('class', 'node')
+				.classed('fixed', function(d) { d.fixed = ifFixed; })
+				.call(drag)
+				// .on('mouseenter', openTooltipOnFeature)
+				// .on('mouseout', closeTooltipOnFeature)
+				// 	.append('image')
+				// 	.attr("xlink:href", function(d) {
+				// 		var nodeData = (typeof(localStorage.savedNode_data) === 'undefined') ? node_data : JSON.parse(localStorage.savedNode_data);
+				// 		return nodeData[0][d.name].photo;
+				// 	})
+				// 	.attr('x', '-8px')
+				// 	.attr('y', '-8px')
+				// 	.attr('width', '16px')
+				// 	.attr('height', '16px');
+		}
+		// Simple straight lines
+		function tick() {
+			path.attr('x1', function(d) { return d.source.x; })
+				.attr('y1', function(d) { return d.source.y; })
+				.attr('x2', function(d) { return d.target.x; })
+				.attr('y2', function(d) { return d.target.y; });
+			circle.attr('transform', transform);
+			// text.attr('transform', transform);
+		}
+		
+
+		function transform(d) {
+			return 'translate(' + d.x + ',' + d.y + ')';
+		}
+
+		function dragstart(d) {
+			var thisTarget = this;
+			// Initiate on left mouse button only
+			if (d3.event.sourceEvent.which == 1) {
+  				dragInitiated = true;   
+  				force.stop();         
+			} else if (d3.event.sourceEvent.which == 3) {
+				makeForceContextMenu(d, thisTarget);
+			}
+			// d3.select(this).style('fill','yellow').style('stroke','rgba(0,0,0,0.4)');
+			// console.log(d3.selectAll('circle').classed('fixed', function(d) { d.fixed = true; }));
+			// d3.select(this).classed('fixed', d.fixed = true);
+			// update()
+		}
+
+		function dragmove(d) {
+			if (dragInitiated) {
+				// force.stop();
+				d.px += d3.event.dx;
+				d.py += d3.event.dy;
+				d.x += d3.event.dx;
+				d.y += d3.event.dy;
+				tick()
+			}
+		}
+
+		function dragend(d) {
+			// Only take gestures into account that
+			if (d3.event.sourceEvent.which == 1) {
+				// $('#svg-container').empty();
+				// reloadSvg(JSON.parse(localStorage.savedNodes), JSON.parse(localStorage.savedLinks), true)
+				d3.select(this).classed('fixed', d.fixed = true);
+				force.resume();
+				// Terminate drag gesture
+				dragInitiated = false;
+			}
+		}
+
+		function dblclick(d, thisTarget) {
+			// d3.select(thisTarget).style('fill','rgba(88, 155, 208, 1.0)').style('stroke','rgba(255,255,255,1)');
+			d3.select(thisTarget).classed('fixed', d.fixed = false);
+		}
+
+		function makeForceContextMenu(d, thisTarget) {
+			// Supress default contextmenu
+			d3.select(this).node().oncontextmenu = function(){ return false; };
+
+			$('#menu').menu('destroy');
+			$('#context-menu').empty();
+			$('#context-menu').append($('<ul>').attr('id','menu')
+				.append($('<li>').attr('id','break-link-item').text('Break Link'))
+				.append($('<li>').attr('id','unpin-node-item').text('Unpin Node'))
+				.append($('<li>').attr('id','show-photo-item')
+					.append($('<label>').text('Show Photo'))
+					.append($('<input>').attr('type','checkbox').attr('id','showPhotoSwitch')
+						.attr('checked', (d.hasOwnProperty('photoIsOn')?d.photoIsOn:false)))
+					)
+				)
+			$('#menu').menu({
+				select: function(event, ui) {
+					switch (ui.item.attr('id')) {
+						case 'break-link-item':
+							console.log('Break Link Selected');
+							removeLink(d);
+							update();
+							break;
+						case 'unpin-node-item':
+							console.log('Unpin Selected');
+							dblclick(d, thisTarget);
+							break;
+						case 'show-photo-item':
+							console.log('Show Photo Selected');
+							togglePhoto(thisTarget, d)
+					}
+				}
+			});
+
+			var svgPosition = cumulativeOffset($('#svg-container')[0]);
+			$('#context-menu').css('top', svgPosition.top + d.y - $('#context-menu').height())
+				.css('left', svgPosition.left + d.x);
+
+			// Destroy Context Menu.
+			$(document).on('click', destroyContextMenu);
+		}
+		function destroyContextMenu() {
+			$('#menu').menu('destroy');
+			$('#context-menu').empty();
+			$(document).off('click');
+		}
+		function cumulativeOffset(element) {
+			var top = 0, left = 0;
+			do {
+				top += element.offsetTop  || 0;
+				left += element.offsetLeft || 0;
+				element = element.offsetParent;
+			} while(element);
+
+			return {
+				top: top,
+				left: left
+			};
+		};
+	});
+	</script>
+{{/section}}
+
+
