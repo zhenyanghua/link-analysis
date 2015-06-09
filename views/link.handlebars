@@ -83,7 +83,7 @@
 		.link.HAPPENED {
 			stroke: rgba(255, 102, 0, 1.0);
 		}
-		line.textpath {
+		path.textpath {
 			fill: none;
 			stroke: none;
 		}
@@ -94,9 +94,15 @@
 			stroke-width: 1.5px;
 		}
 		text {
-			font: 10px sans-serif;
+			font: 8px sans-serif;
 			pointer-events: none;
-			text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+			/* Adding text-shadow will extremely slow down the performance of the graph */
+			/*text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;*/
+		}
+		text.shadow {
+			stroke: #999;
+			stroke-width: 1px;
+			stroke-opacity: .8;
 		}
 		#context-menu {
 			position: absolute;
@@ -276,7 +282,17 @@
 		var width = 710,
 			height = 600,
 			NODE_RADIUS = 5, // default 5
-			LINK_DISTANCE = 60; // default 40
+			LINK_DISTANCE = 100; // default 40
+
+		var force,
+			svg,
+			drag,
+			link,
+			linkPath,
+			textPath,
+			circle,
+			text,
+			path_label;
 
 		loadSvg(nodes, links, false);
 
@@ -393,9 +409,8 @@
 				.links(_links)
 				.size([width, height])
 				.linkDistance(LINK_DISTANCE)
-				.linkStrength(1)
-				.friction(0.92)
-				.charge(-50)
+				.charge(-100)
+				.gravity(.05)
 				.on('tick', tick)
 				.start();
 
@@ -427,33 +442,17 @@
 				.enter().append('g')
 					.attr('class', 'link');
 
-			path = link.append('line')
+			linkPath = link.append('path')
 				.attr('class', function(d) { return 'link ' + d.type; })
 				.attr('marker-end', function(d) { return 'url(#' + d.type + ')'; });
 
-			textPath = link.append('line')
+			textPath = link.append('path')
 				.attr('id', function(d) { return d.source.index + '_' + d.target.index; })
 				.attr('class', 'textpath');
 
-			// path = svg.append('g').attr('class','g1').selectAll('line')
-			// 	.data(force.links());
-
-			// path.enter().append('line')
-			// 		.attr('class', function(d) { return 'link ' + d.type; })
-			// 		.attr('marker-end', function(d) { return 'url(#' + d.type + ')'; });
-
-			// Create textPath
-			// textPath = svg.append('g').attr('class','g3').selectAll('path')
-			// 	.data(force.links());
-
-			// textPath.enter().append('path')
-			// 	.attr('id', function(d) { return d.source.index + '_' + d.target.index; })
-			// 	.attr('class', 'textpath');
-
-			circle = svg.append('g').attr('class','g2').selectAll('circle')
-				.data(force.nodes());
-
-			circle.enter().append('circle')
+			circle = svg.append('g').selectAll('circle')
+				.data(force.nodes())
+				.enter().append('circle')
 				.attr('r', NODE_RADIUS)
 				.attr('id', function(d, i) { return 'node_' + i; })
 				.attr('name', function(d) { return d.name; })
@@ -472,32 +471,92 @@
 				// 	.attr('width', '16px')
 				// 	.attr('height', '16px');
 
+			text = svg.append('g').selectAll('g')
+				.data(force.nodes())
+				.enter().append('g');
+
+			text.append('text')
+				.attr('x', 8)
+				.attr('y', '.31em')
+				.attr('class', 'shadow')
+				.text(function(d) { return d.name; });
+
 			var path_label = svg.append('g').selectAll('.path_label')
 					.data(force.links())
 				.enter().append('text')
-				.attr('class','path_label')
-				.append('textPath')
-					.attr('startOffset', '50%')
-					.attr('text-anchor', 'middle')
-					.attr('xlink:href', function(d) { return '#' + d.source.index + '_' + d.target.index; })
-					.style('fill', '#000')
-					.style('font-family', 'Helvetica')
-					.text(function(d) { return d.type; });
+					.attr('class','path_label')
+					.append('textPath')
+						.attr('startOffset', '50%')
+						.attr('text-anchor', 'middle')
+						.attr('xlink:href', function(d) { return '#' + d.source.index + '_' + d.target.index; })
+						.style('fill', getRelationshipColor)
+						.style('font-family', 'sans-serif')
+						.text(function(d) { return d.type; });
 		}
-		// Simple straight lines
+
+		function getRelationshipColor(d) {
+			// ['default','KNOWS','VICTIMIZED','CHARGED','TALKEDTO','COMMITTED','RECORDED','STOLEN','HAPPENED']
+			var color;
+			switch(d.type) {
+				
+				case 'KNOWS':
+					color = 'rgba(255, 0, 255, 1.0)';
+					break;
+				case 'VICTIMIZED':
+					color = 'rgba(255, 75, 68, 1.0)';
+					break;
+				case 'CHARGED':
+					color = 'rgba(0, 204, 153, 1.0)';
+					break;
+				case 'TALKEDTO':
+					color = 'rgba(0, 0, 255, 1.0)';
+					break;
+				case 'COMMITTED':
+					color = 'rgba(163, 71, 71, 1.0)';
+					break;
+				case 'RECORDED':
+					color = 'rgba(0, 153, 0, 1.0)';
+					break;
+				case 'STOLEN':
+					color = 'rgba(153, 153, 102, 1.0)';
+					break;
+				case 'HAPPENED':
+					color = 'rgba(255, 102, 0, 1.0)';
+					break;
+				default:
+					color = '#ccc';
+			}
+			return color;
+		}
+
 		function tick() {
-			path.attr('x1', function(d) { return d.source.x; })
-				.attr('y1', function(d) { return d.source.y; })
-				.attr('x2', function(d) { return d.target.x; })
-				.attr('y2', function(d) { return d.target.y; });
-			circle.attr('transform', transform);
-			// text.attr('transform', transform);
+			linkPath.attr('d', function(d) {
+				return arcPath(false, d);
+			});
+
+			textPath.attr('d', function(d) {
+				return arcPath(d.source.x < d.target.x, d);
+			});
+
+			circle.attr('transform', function(d) {
+				return 'translate(' + d.x + ',' + d.y + ')';
+			});
+
+			text.attr('transform', function(d) {
+				return 'translate(' + d.x + ',' + d.y + ')';
+			});
 		}
 		
-
-		function transform(d) {
-			return 'translate(' + d.x + ',' + d.y + ')';
+		function arcPath(leftHand, d) {
+			var start = leftHand ? d.source : d.target,
+				end = leftHand ? d.target : d.source,
+				dx = end.x - start.x,
+				dy = end.y - start.y,
+				dr = Math.sqrt(dx * dx + dy * dy),
+				sweep = leftHand ? 0 : 1;
+			return "M" + start.x + "," + start.y + "A" + dr + "," + dr + " 0 0," + sweep + " " + end.x + "," + end.y;
 		}
+
 
 		function dragstart(d) {
 			var thisTarget = this;
@@ -508,10 +567,6 @@
 			} else if (d3.event.sourceEvent.which == 3) {
 				makeForceContextMenu(d, thisTarget);
 			}
-			// d3.select(this).style('fill','yellow').style('stroke','rgba(0,0,0,0.4)');
-			// console.log(d3.selectAll('circle').classed('fixed', function(d) { d.fixed = true; }));
-			// d3.select(this).classed('fixed', d.fixed = true);
-			// update()
 		}
 
 		function dragmove(d) {
