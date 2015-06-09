@@ -54,4 +54,4 @@ require('./app/routes.js')(app, passport) // load routes and pass in the app and
 
 // launch
 app.listen(port);
-console.log('The magic happens on port' + port + '....');
+console.log('The magic happens on port ' + port + '....');

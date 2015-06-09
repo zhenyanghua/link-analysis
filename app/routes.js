@@ -30,7 +30,7 @@ module.exports = function(app, passport) {
 		failureFlash: true
 	}));
 
-	app.get('/link', /* isLoggedIn, */function(req, res) {
+	app.get('/link', isLoggedIn, function(req, res) {
 		// get the user out of session and pass to template
 		res.render('link', function(err, result){
 			// Response is sent in the handler.

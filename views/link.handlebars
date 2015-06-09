@@ -33,14 +33,61 @@
 			fill: #ccc;
 		}
 		#KNOWS {
-			fill: rgba(232, 75, 68, 1.0);
+			fill: rgba(255, 0, 255, 1.0);
+		}
+		#VICTIMIZED {
+			fill: rgba(255, 75, 68, 1.0);
+		}
+		#CHARGED {
+			fill: rgba(0, 204, 153, 1.0);
+		}
+		#TALKEDTO {
+			fill: rgba(0, 0, 255, 1.0);
+		}
+		#COMMITTED {
+			fill: rgba(163, 71, 71, 1.0);
+		}
+		#RECORDED {
+			fill: rgba(0, 153, 0, 1.0);
+		}
+		#STOLEN {
+			fill: rgba(153, 153, 102, 1.0);
+		}
+		#HAPPENED {
+			fill: rgba(255, 102, 0, 1.0);
 		}
 		.link.default {
 			stroke: #ccc;
 		}
 		.link.KNOWS {
-			stroke: rgba(232, 75, 68, 1.0);
+			stroke: rgba(255, 0, 255, 1.0);
 		}
+		.link.VICTIMIZED {
+			stroke: rgba(255, 75, 68, 1.0);
+		}
+		.link.CHARGED {
+			stroke: rgba(0, 204, 153, 1.0);
+		}
+		.link.TALKEDTO {
+			stroke: rgba(0, 0, 255, 1.0);
+		}
+		.link.COMMITTED {
+			stroke: rgba(163, 71, 71, 1.0);
+		}
+		.link.RECORDED {
+			stroke: rgba(0, 153, 0, 1.0);
+		}
+		.link.STOLEN {
+			stroke: rgba(153, 153, 102, 1.0);
+		}
+		.link.HAPPENED {
+			stroke: rgba(255, 102, 0, 1.0);
+		}
+		line.textpath {
+			fill: none;
+			stroke: none;
+		}
+
 		circle {
 			fill: rgba(88, 155, 208, 1.0);
 			stroke: #FFFFFF;
@@ -86,7 +133,7 @@
 						<div class="panel-heading" id="headingTwo" role="tab">
 							<h4 class="panel-title inline">
 								<div>
-									<span class="fa fa-search"></span><a class="collapsed" href="#collpaseSearch" data-toggle="collapse" data-parent="#accordion" aria-expanded="true" aria-controls="collpaseSearch">
+									<span class="fa fa-search"></span> <a class="collapsed" href="#collpaseSearch" data-toggle="collapse" data-parent="#accordion" aria-expanded="true" aria-controls="collpaseSearch">
 										Search
 									</a>
 								</div>
@@ -137,7 +184,7 @@
 					<div class="panel panel-default">
 						<div class="panel-heading" id="headingOne" role="tab">
 							<h4 class="panel-title">
-								<span class="fa fa-pencil-square-o"></span><a href="#collpaseEdit" data-toggle="collapse" data-parent="#accordion" aria-expanded="false" aria-controls="collpaseEdit">
+								<span class="fa fa-pencil-square-o"></span> <a href="#collpaseEdit" data-toggle="collapse" data-parent="#accordion" aria-expanded="false" aria-controls="collpaseEdit">
 									Edit
 								</a>
 							</h4>
@@ -363,7 +410,7 @@
 
 			// Per-type markers, as they don't inherit styles.
 			svg.append('defs').selectAll('marker')
-				.data(['default','KNOWS'])
+				.data(['default','KNOWS','VICTIMIZED','CHARGED','TALKEDTO','COMMITTED','RECORDED','STOLEN','HAPPENED'])
 				.enter().append('marker')
 					.attr('id', function(d) { return d; })
 					.attr('viewBox', '0 -5 10 10') 
@@ -375,12 +422,33 @@
 				.append('path')
 					.attr('d', 'M0,-3L13,0L0,3');
 
-			path = svg.append('g').attr('class','g1').selectAll('line')
-				.data(force.links());
+			var link = svg.append('g').selectAll('g.link')
+				.data(force.links())
+				.enter().append('g')
+					.attr('class', 'link');
 
-			path.enter().append('line')
-					.attr('class', function(d) { return 'link ' + d.type; })
-					.attr('marker-end', function(d) { return 'url(#' + d.type + ')'; });
+			path = link.append('line')
+				.attr('class', function(d) { return 'link ' + d.type; })
+				.attr('marker-end', function(d) { return 'url(#' + d.type + ')'; });
+
+			textPath = link.append('line')
+				.attr('id', function(d) { return d.source.index + '_' + d.target.index; })
+				.attr('class', 'textpath');
+
+			// path = svg.append('g').attr('class','g1').selectAll('line')
+			// 	.data(force.links());
+
+			// path.enter().append('line')
+			// 		.attr('class', function(d) { return 'link ' + d.type; })
+			// 		.attr('marker-end', function(d) { return 'url(#' + d.type + ')'; });
+
+			// Create textPath
+			// textPath = svg.append('g').attr('class','g3').selectAll('path')
+			// 	.data(force.links());
+
+			// textPath.enter().append('path')
+			// 	.attr('id', function(d) { return d.source.index + '_' + d.target.index; })
+			// 	.attr('class', 'textpath');
 
 			circle = svg.append('g').attr('class','g2').selectAll('circle')
 				.data(force.nodes());
@@ -403,6 +471,18 @@
 				// 	.attr('y', '-8px')
 				// 	.attr('width', '16px')
 				// 	.attr('height', '16px');
+
+			var path_label = svg.append('g').selectAll('.path_label')
+					.data(force.links())
+				.enter().append('text')
+				.attr('class','path_label')
+				.append('textPath')
+					.attr('startOffset', '50%')
+					.attr('text-anchor', 'middle')
+					.attr('xlink:href', function(d) { return '#' + d.source.index + '_' + d.target.index; })
+					.style('fill', '#000')
+					.style('font-family', 'Helvetica')
+					.text(function(d) { return d.type; });
 		}
 		// Simple straight lines
 		function tick() {
