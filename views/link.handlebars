@@ -135,13 +135,39 @@
 			<div class="well">
 				<h3><span class="fa fa-tasks"></span> Tasks</h3>
 				<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+					<!-- Query Builder Panel -->
+					<div class="panel panel-default">
+						<div class="panel-heading" id="headingQuery" role="tab">
+							<h4 class="panel-title inline">
+								<div>
+									<span class="fa fa-sliders"></span> <a class="collapsed" href="#collpaseQuery" data-toggle="collapse" data-parent="#accordion" aria-expanded="true" aria-controls="collpaseQuery">
+										Query Builder
+									</a>
+								</div>	
+							</h4>
+						</div>
+						<div id="collpaseQuery" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingQuery">
+							<!-- Query Builder -->
+							<li class="list-group-item">
+								<form role="form">
+									<div class="form-group">
+										<label for="sel-type">What type of Node?</label>
+										<select name="label" class="form-control input-sm" id="sel-type"></select>
+										<label for="sel-relationships">What types of Relationship?</label>
+										<select multiple name="relationships" class="form-control input-sm" id="sel-relationships"></select>
+										<p><br><a id="add-filter" href="#"><span class="fa fa-plus" aria-hidden="true"></span> Add a filter</a></p>
+									</div>
+								</form>
+							</li>
+						</div>
+					</div>	
 					<!-- Search Panel -->
 					<div class="panel panel-default">
 						<!-- Search Panel header -->
-						<div class="panel-heading" id="headingTwo" role="tab">
+						<div class="panel-heading" id="headingSearch" role="tab">
 							<h4 class="panel-title inline">
 								<div>
-									<span class="fa fa-search"></span> <a class="collapsed" href="#collpaseSearch" data-toggle="collapse" data-parent="#accordion" aria-expanded="true" aria-controls="collpaseSearch">
+									<span class="fa fa-search"></span> <a href="#collpaseSearch" data-toggle="collapse" data-parent="#accordion" aria-expanded="false" aria-controls="collpaseSearch">
 										Search
 									</a>
 								</div>
@@ -153,7 +179,7 @@
 								
 							</h4>
 						</div>
-						<div id="collpaseSearch" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingTwo">
+						<div id="collpaseSearch" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSearch">
 							<ul class="list-group">
 								<!-- Q1 -->
 								<li class="list-group-item">
@@ -190,14 +216,14 @@
 					</div>
 					<!-- Edit Panel -->
 					<div class="panel panel-default">
-						<div class="panel-heading" id="headingOne" role="tab">
+						<div class="panel-heading" id="headingEdit" role="tab">
 							<h4 class="panel-title">
 								<span class="fa fa-pencil-square-o"></span> <a href="#collpaseEdit" data-toggle="collapse" data-parent="#accordion" aria-expanded="false" aria-controls="collpaseEdit">
 									Edit
 								</a>
 							</h4>
 						</div>
-						<div id="collpaseEdit" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+						<div id="collpaseEdit" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingEdit">
 							<div class="panel-body"></div>
 						</div>
 					</div>	
@@ -258,11 +284,15 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
 	<script src="models/person.js"></script>
 	<script src="collections/people.js"></script>
+	<script src="collections/models.js"></script>
+	<script src="js/client.utils.js"></script>
 	<!-- Visualization Script -->
 	<script>
 	$('document').ready(function() {
 		console.log({{{relationships}}});
 		console.log({{{nodes}}});
+
+		loadModelstoUI();
 
 		// Initialize tooltips
 		$('[data-toggle="tooltip"]').tooltip({container: 'body'})
@@ -490,7 +520,7 @@
 					.call(drag)
 					.on('mouseenter', function() {
 						d3.select(this.getElementsByClassName('circle-background')[0])
-							.attr('r', NODE_RADIUS * 1.5)
+							.attr('r', NODE_RADIUS * 1.7)
 							.style('fill', 'rgba(0, 153, 255, 0.2)')
 							.style('stroke','rgba(0, 153, 255, 0.2)');
 					})
