@@ -85,7 +85,8 @@
 		}
 		path.textpath {
 			fill: none;
-			stroke: none;
+			stroke: rgba(0,0,0,0.01);
+			stroke-width: 11px;
 		}
 
 		circle {
@@ -100,8 +101,9 @@
 			/*text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;*/
 		}
 		text.shadow {
+			font-weight: lighter;
 			stroke: #999;
-			stroke-width: 1px;
+			stroke-width: 0.4px;
 			stroke-opacity: .8;
 		}
 		#context-menu {
@@ -278,11 +280,19 @@
 			link.source = nodes[link.source] || (nodes[link.source] = { name: link.source });
 			link.target = nodes[link.target] || (nodes[link.target] = { name: link.target });
 		})
+		
+		// Append nodes data
+		_.toArray({{{nodes}}}).forEach(function(each) {
+			_.each(each, function(val, key) {
+				nodes[each.id][key] = val;
+			})
+		})
+		console.log(nodes)
 
 		var width = 710,
 			height = 600,
 			NODE_RADIUS = 5, // default 5
-			LINK_DISTANCE = 100; // default 40
+			LINK_DISTANCE = 80; // default 40
 
 		var force,
 			svg,
@@ -379,6 +389,7 @@
 				link.source = nodes[link.source] || (nodes[link.source] = { name: link.source });
 				link.target = nodes[link.target] || (nodes[link.target] = { name: link.target });
 			})
+
 			// Reload!
 			loadSvg(nodes, links, false);
 
@@ -429,36 +440,88 @@
 				.enter().append('marker')
 					.attr('id', function(d) { return d; })
 					.attr('viewBox', '0 -5 10 10') 
-					.attr('refX', 17)
+					.attr('refX', -7)
 					.attr('refY', 0)
 					.attr('markerWidth', 7)
 					.attr('markerHeight', 7)
 					.attr('orient', 'auto')
 				.append('path')
-					.attr('d', 'M0,-3L13,0L0,3');
+					.attr('d', 'M13,-5L0,0L13,5');
 
 			var link = svg.append('g').selectAll('g.link')
 				.data(force.links())
 				.enter().append('g')
-					.attr('class', 'link');
+					.attr('class', 'link')
+					.on('mouseenter', function() {
+						d3.select(this.getElementsByClassName('textpath')[0])
+							.style('stroke','rgba(0, 153, 255, 0.2)');
+					})
+					.on('mouseout', function() {
+						d3.select(this.getElementsByClassName('textpath')[0])
+							.style('stroke','rgba(0,0,0,0.01)');
+					})
 
 			linkPath = link.append('path')
 				.attr('class', function(d) { return 'link ' + d.type; })
-				.attr('marker-end', function(d) { return 'url(#' + d.type + ')'; });
+				.attr('marker-start', function(d) { return 'url(#' + d.type + ')'; });
 
 			textPath = link.append('path')
 				.attr('id', function(d) { return d.source.index + '_' + d.target.index; })
-				.attr('class', 'textpath');
+				.attr('class', 'textpath')
 
-			circle = svg.append('g').selectAll('circle')
+			var path_label = svg.append('g').selectAll('.path_label')
+					.data(force.links())
+				.enter().append('text')
+					.attr('class','path_label');
+
+			path_label.append('textPath')
+				.attr('id', function(d) { return 'path_label-' + d.source.id + '-' + d.target.id; })
+				.attr('startOffset', '50%')
+				.attr('text-anchor', 'middle')
+				.attr('xlink:href', function(d) { return '#' + d.source.index + '_' + d.target.index; })
+				.style('fill', getRelationshipColor)
+				.style('font-family', 'sans-serif')
+				.text(function(d) { return d.type; });
+
+			circle = svg.append('g').selectAll('g.circle')
 				.data(force.nodes())
-				.enter().append('circle')
+				.enter().append('g')
+					.attr('class', 'circle')
+					.call(drag)
+					.on('mouseenter', function() {
+						d3.select(this.getElementsByClassName('circle-background')[0])
+							.attr('r', NODE_RADIUS * 1.5)
+							.style('fill', 'rgba(0, 153, 255, 0.2)')
+							.style('stroke','rgba(0, 153, 255, 0.2)');
+					})
+					.on('mouseout', function() {
+						d3.select(this.getElementsByClassName('circle-background')[0])
+							.attr('r', NODE_RADIUS)
+							.style('fill', 'rgba(0, 0, 0, 0.01)')
+							.style('stroke','rgba(0,0,0,0.01)');
+					})
+			circle.append('circle')
+				.attr('r', NODE_RADIUS)
+				.attr('class', 'circle-background')
+				.classed('fixed', function(d) { d.fixed = ifFixed; })	
+
+			circle.append('circle')
 				.attr('r', NODE_RADIUS)
 				.attr('id', function(d, i) { return 'node_' + i; })
 				.attr('name', function(d) { return d.name; })
 				.attr('class', 'node')
 				.classed('fixed', function(d) { d.fixed = ifFixed; })
-				.call(drag)
+				
+
+			// circle = svg.append('g').selectAll('circle')
+			// 	.data(force.nodes())
+			// 	.enter().append('circle')
+			// 	.attr('r', NODE_RADIUS)
+			// 	.attr('id', function(d, i) { return 'node_' + i; })
+			// 	.attr('name', function(d) { return d.name; })
+			// 	.attr('class', 'node')
+			// 	.classed('fixed', function(d) { d.fixed = ifFixed; })
+			// 	.call(drag)
 				// .on('mouseenter', openTooltipOnFeature)
 				// .on('mouseout', closeTooltipOnFeature)
 				// 	.append('image')
@@ -476,22 +539,22 @@
 				.enter().append('g');
 
 			text.append('text')
+				.attr('id', function(d) { return 'text-' + d.id; })
 				.attr('x', 8)
 				.attr('y', '.31em')
 				.attr('class', 'shadow')
-				.text(function(d) { return d.name; });
+				.text(function(d) { return d.labels; });
 
-			var path_label = svg.append('g').selectAll('.path_label')
-					.data(force.links())
-				.enter().append('text')
-					.attr('class','path_label')
-					.append('textPath')
-						.attr('startOffset', '50%')
-						.attr('text-anchor', 'middle')
-						.attr('xlink:href', function(d) { return '#' + d.source.index + '_' + d.target.index; })
-						.style('fill', getRelationshipColor)
-						.style('font-family', 'sans-serif')
-						.text(function(d) { return d.type; });
+			var SVGRect = function(d) { return d3.select('#text-' + d.id).node().getBBox(); };
+			
+			text.insert('rect','text')
+				.attr('x', function(d) { return SVGRect(d).x; })
+				.attr('y', function(d) { return SVGRect(d).y; })
+				.attr('width', function(d) { return SVGRect(d).width; })
+				.attr('height', function(d) { return SVGRect(d).height; })
+				.style('fill','rgb(245, 245, 245)');
+
+			
 		}
 
 		function getRelationshipColor(d) {
@@ -552,7 +615,7 @@
 				end = leftHand ? d.target : d.source,
 				dx = end.x - start.x,
 				dy = end.y - start.y,
-				dr = Math.sqrt(dx * dx + dy * dy),
+				dr = (d.bidirectional) ? Math.sqrt(dx * dx + dy * dy) : 0,
 				sweep = leftHand ? 0 : 1;
 			return "M" + start.x + "," + start.y + "A" + dr + "," + dr + " 0 0," + sweep + " " + end.x + "," + end.y;
 		}
