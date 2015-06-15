@@ -149,13 +149,17 @@
 						<div id="collpaseQuery" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingQuery">
 							<!-- Query Builder -->
 							<li class="list-group-item">
-								<form role="form">
+								<form role="form" id="query-builder">
 									<div class="form-group">
 										<label for="sel-type">What type of Node?</label>
 										<select name="label" class="form-control input-sm" id="sel-type"></select>
 										<label for="sel-relationships">What types of Relationship?</label>
 										<select multiple name="relationships" class="form-control input-sm" id="sel-relationships"></select>
-										<p><br><a id="add-filter" href="#"><span class="fa fa-plus" aria-hidden="true"></span> Add a filter</a></p>
+										<p>
+											<br>
+											<a id="add-filter" href="#"><span class="fa fa-plus" aria-hidden="true"></span> Add a filter</a>
+											<a id="run-query" href="#" style="float: right"><span class="fa fa-play" aria-hidden="true"></span> Run</a>
+										</p>
 									</div>
 								</form>
 							</li>
@@ -280,6 +284,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
 	<script src="lib/bootstrap3-typeahead.min.js"></script>
+	<script src="lib/get-form-data.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
 	<script src="models/person.js"></script>
@@ -482,7 +487,7 @@
 				.data(force.links())
 				.enter().append('g')
 					.attr('class', 'link')
-					.on('mouseenter', function() {
+					.on('mouseover', function() {
 						d3.select(this.getElementsByClassName('textpath')[0])
 							.style('stroke','rgba(0, 153, 255, 0.2)');
 					})
@@ -518,7 +523,7 @@
 				.enter().append('g')
 					.attr('class', 'circle')
 					.call(drag)
-					.on('mouseenter', function() {
+					.on('mouseover', function() {
 						d3.select(this.getElementsByClassName('circle-background')[0])
 							.attr('r', NODE_RADIUS * 1.7)
 							.style('fill', 'rgba(0, 153, 255, 0.2)')
