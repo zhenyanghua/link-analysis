@@ -1,3 +1,5 @@
+var _ = require("underscore");
+
 module.exports = function(app, passport) {
 
 	var Neo4jHandler = require('./modules/neo4j-handler.js');
@@ -94,6 +96,77 @@ module.exports = function(app, passport) {
 			'RETURN n, r'
 		].join('\n');
 
+		var params = {};
+
+		neo4jHandler.search(res, query, params);
+	});
+
+	app.post('/run-query', function(req, res) {
+		// console.log(req.body);
+		var data = req.body;
+		
+		// Loop through relationship types
+		var where = '(n:' + data.label + ')-[r]-(child)';
+		if (data.relationships){
+			where = data.relationships.map(function(relationshipName) {
+				return '(n:' + data.label + ')-[r:' + relationshipName + ']-(child)';
+			}).join(' OR ');
+		}
+		
+		if (data.filters) {
+
+			where += ' AND (';
+			var condition = data.condition;
+			switch (condition.toLowerCase()) {
+				case 'all':
+					where += data.filters.map(function(filter) {
+						var key = Object.keys(filter)[0].split('-')[1];
+						return 'n.' + filter['prop-' + key].toLowerCase() + filter['operator-' + key] + '"' + filter['prop_value-' + key] + '"'
+					}).join(' AND ');
+					break;
+				case 'any':
+					where += data.filters.map(function(filter) {
+						var key = Object.keys(filter)[0].split('-')[1];
+						return 'n.' + filter['prop-' + key].toLowerCase() + filter['operator-' + key] + '"' + filter['prop_value-' + key] + '"'
+					}).join(' OR ');
+					break;
+				case 'none':
+					where += 'NOT('
+					where += data.filters.map(function(filter) {
+						var key = Object.keys(filter)[0].split('-')[1];
+						return 'n.' + filter['prop-' + key].toLowerCase() + filter['operator-' + key] + '"' + filter['prop_value-' + key] + '"'
+					}).join(' OR ');
+					where += ')'
+			}
+			
+			where += ')';
+		}
+
+
+		// Optional Match the depth of relationship
+		var queryString = (function(depth) {
+			var matchString;
+			if (depth == "1") {
+				matchString = 'Optional MATCH (x:false)-[rc]-(m)';
+			} else if (depth == "All") {
+				matchString = 'Optional MATCH (child)-[rc*]-(m)';
+			} else {
+				matchString = 'Optional MATCH (child)-[rc*1..' + (parseInt(depth) - 1) + ']-(m)';
+			}
+
+			return {
+				optionalMatchString: matchString
+			};
+		})(data.depth);
+
+		var query = [
+			'MATCH (n)-[r]-(child)',
+			'WHERE ' + where,
+			queryString.optionalMatchString,
+			'RETURN child,r,m,rc'
+		].join('\n');
+
+		console.log(query)
 		var params = {};
 
 		neo4jHandler.search(res, query, params);

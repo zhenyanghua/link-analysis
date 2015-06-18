@@ -155,6 +155,8 @@
 										<select name="label" class="form-control input-sm" id="sel-type"></select>
 										<label for="sel-relationships">What types of Relationship?</label>
 										<select multiple name="relationships" class="form-control input-sm" id="sel-relationships"></select>
+										<label for="sel-depth">Depth of Relationships</label>
+										<select name="depth" class="form-control input-sm" id="sel-depth"></select>
 										<p>
 											<br>
 											<a id="add-filter" href="#"><span class="fa fa-plus" aria-hidden="true"></span> Add a filter</a>
@@ -293,7 +295,7 @@
 	<script src="js/client.utils.js"></script>
 	<!-- Visualization Script -->
 	<script>
-	$('document').ready(function() {
+	// $('document').ready(function() {
 		console.log({{{relationships}}});
 		console.log({{{nodes}}});
 
@@ -307,22 +309,10 @@
 		$('#btn-search-where').parent().siblings().typeahead({ source: _.uniq(_.pluck({{{nodes}}},'from')) });
 		$('#btn-search-related-where').parent().siblings().typeahead({ source: _.uniq(_.pluck({{{nodes}}},'from')) });
 		
+		// Reset Data
 		var links = {{{relationships}}};
 		var nodes = {};
-
-		// Compute the distinct nodes from the links.
-		links.forEach(function(link){
-			link.source = nodes[link.source] || (nodes[link.source] = { name: link.source });
-			link.target = nodes[link.target] || (nodes[link.target] = { name: link.target });
-		})
-		
-		// Append nodes data
-		_.toArray({{{nodes}}}).forEach(function(each) {
-			_.each(each, function(val, key) {
-				nodes[each.id][key] = val;
-			})
-		})
-		console.log(nodes)
+		resetData(links, nodes);
 
 		var width = 710,
 			height = 600,
@@ -412,6 +402,21 @@
 			});
 		});
 
+		function resetData(links, nodes) {
+			// Compute the distinct nodes from the links.
+			links.forEach(function(link){
+				link.source = nodes[link.source] || (nodes[link.source] = { name: link.source });
+				link.target = nodes[link.target] || (nodes[link.target] = { name: link.target });
+			})
+			
+			// Append nodes data
+			_.toArray({{{nodes}}}).forEach(function(each) {
+				_.each(each, function(val, key) {
+					if (nodes[each.id]) nodes[each.id][key] = val;
+				})
+			})
+		}
+
 		function updatePanel(data) {
 			// Reset DOM
 			force.stop();
@@ -420,27 +425,24 @@
 			// Reset data
 			var links = data.relationships;
 			var nodes = {};
-			links.forEach(function(link){
-				link.source = nodes[link.source] || (nodes[link.source] = { name: link.source });
-				link.target = nodes[link.target] || (nodes[link.target] = { name: link.target });
-			})
+			resetData(links, nodes);
 
 			// Reload!
 			loadSvg(nodes, links, false);
 
 			// Update Table
-			var table = $('#table').find('table');
-			table.empty();
-			table.append($('<tr>')
-				.append($('<th>').text('Id'))
-				.append($('<th>').text('Name'))
-				.append($('<th>').text('From')));
-			data.nodeObject.forEach(function(node) {
-				table.append($('<tr>')
-					.append($('<td>').text(node.id))
-					.append($('<td>').text(node.name))
-					.append($('<td>').text(node.from)));
-			})
+			// var table = $('#table').find('table');
+			// table.empty();
+			// table.append($('<tr>')
+			// 	.append($('<th>').text('Id'))
+			// 	.append($('<th>').text('Name'))
+			// 	.append($('<th>').text('From')));
+			// data.nodeObject.forEach(function(node) {
+			// 	table.append($('<tr>')
+			// 		.append($('<td>').text(node.id))
+			// 		.append($('<td>').text(node.name))
+			// 		.append($('<td>').text(node.from)));
+			// })
 		}
 
 		$(window).on('resize', resizeSvg);
@@ -754,7 +756,7 @@
 				left: left
 			};
 		};
-	});
+	// });
 	</script>
 {{/section}}
 

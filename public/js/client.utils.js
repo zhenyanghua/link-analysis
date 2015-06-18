@@ -5,14 +5,20 @@ function loadModelstoUI() {
 	$typeSelector.append('<option> Select One </option>');
 	$.each(_.pluck(MODELS,'type').sort(), function(key, type) {
 		$typeSelector.append('<option>' + type + '</option>');
-	})
+	});
+	var $depthSelector = $('#sel-depth');
+	$depthSelector.append('<option>1</option>')
+		.append('<option>2</option>')
+		.append('<option>3</option>')
+		.append('<option>4</option>')
+		.append('<option value="All">All (Cost more time)</option>');
 	$typeSelector.on('change', function(evt) {
 		changeQueryBuilderStatusHandler(evt, filterCounter, filterCounterCollection);
 	});
 	$('#add-filter').on('click', function(evt) { 
 		// record filterCounter Obj, add loaded as value to avoid property value changing.
 		filterCounterCollection[filterCounter] = { loaded: false };
-
+		addFilterCondition(filterCounterCollection);
 		addFilterHandler(evt, filterCounter, filterCounterCollection);
 		filterCounter++;
 	});
@@ -27,6 +33,7 @@ function changeQueryBuilderStatusHandler(evt, filterCounter, filterCounterCollec
 
 function loadRelationshipTypes(evt) {
 	var $relationshipSelector = $('#sel-relationships');
+	// Clear the UI
 	$relationshipSelector.empty();
 	$.each(MODELS, function(key, model) {
 		if (model.type != evt.target.value) return;
@@ -36,11 +43,39 @@ function loadRelationshipTypes(evt) {
 	});
 }
 
+function addFilterCondition(filterCounterCollection) {
+	if (_.size(filterCounterCollection) == 1) {
+		$conditionSelector = $('<select>').attr('name', 'condition')
+			.append('<option>ALL</option>')
+			.append('<option>ANY</option>')
+			.append('<option>None</option>')
+		$('#sel-depth')
+			.after($('<div>').attr('id', 'filter-condition-container')
+				.css({ 
+					'margin': '10px 0',
+					'font-weight': 700
+				})
+				.append('Match ')
+				.append($conditionSelector)
+				.append(' of the following:')
+				// Animation css
+				.css({
+					height: 0,
+					opacity: 0.2
+				})
+				.animate({
+					height: "20px",
+					opacity: 1
+				}));
+	}
+}
+
 function loadFilter(nodeTypeValue, filterCounterCollection) {
 	$.each(filterCounterCollection, function(filterCounter, val) {
 		var $propertiesSelector = $('#sel-property-' + filterCounter);
+		// if the filter has been loaded, then don't re-generate the UI.
 		if (val.loaded == true) return;
-
+		// Clear the UI
 		$propertiesSelector.empty();
 		$.each(MODELS, function(_, model) {
 			if (model.type != nodeTypeValue) return;
@@ -117,11 +152,24 @@ function removeFilterHandler(removeAll, filterCounterCollection, filterCounter) 
 				$(this).remove();
 			});
 
-		delete filterCounterCollection[filterCounter];
+		delete filterCounterCollection[key];
 	});	
+	// Remove Filter Condition
+	if ($('#filter-condition-container').length > 0 && _.size(filterCounterCollection) == 0) {
+		$('#filter-condition-container')
+			.animate({
+				height: 0,
+				opacity: 0.2
+			}, function() {
+				// Remove the container when animation is finished.
+				$(this).remove();
+			});
+	}
 }
 
-function runQueryHandler() {
+function runQueryHandler(evt) {
+	evt.preventDefault();
+	
 	// Get form data
 	var form = $('form#query-builder')[0];
 	var data = getFormData(form);
@@ -131,9 +179,9 @@ function runQueryHandler() {
 	var filters = [];
 	// inherit "label" and "relationships" key/val pair, and push generated filter data to the temporary array.
 	$.each(data, function(key, val) {
-		if (key == "label" || key == "relationships") {
+		if ((key == "label" && val != "Select One") || key == "relationships" || key == "condition" || key =="depth") {
 			newData[key] = val;
-		} else {
+		} else if (val != "Select One") {
 			var obj = {};
 			obj[key] = val;
 			filters.push(obj);
@@ -155,5 +203,26 @@ function runQueryHandler() {
 	// Only add filters to the newData Object if any exists.
 	if(_.size(mergedFilters) > 0) newData['filters'] = mergedFilters;
 	
-	console.log(newData)
+	console.log(newData);
+	sendQueryToServer(newData);
+}
+
+function sendQueryToServer(data) {
+	$.ajax({
+		url: '/run-query',
+		type: 'POST',
+		dataType: 'json',
+		data: data,
+	})
+	.done(function(data) {
+		console.log("success");
+		updatePanel(data);
+	})
+	.fail(function() {
+		console.log("error");
+	})
+	.always(function() {
+		console.log("complete");
+	});
+	
 }

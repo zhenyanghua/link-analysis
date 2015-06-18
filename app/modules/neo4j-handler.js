@@ -14,41 +14,49 @@ var Neo4jHandler = module.exports = function Neo4jHandler() {
 // Public instance methods:
 Neo4jHandler.prototype.getNodesandRelationships = function(res, user) {
 	var query = [
-		'MATCH (n)-[r]-()',
-		'RETURN n, r'
+		'MATCH (n)-[r0]-()',
+		'RETURN n, r0'
 	].join('\n');
 
 	var params = {
 
 	};
 
-	db.query(query, params, function(err, results) {
+	db.cypher({
+		query: query,
+		params: params
+	}, function(err, results) {
 		if (err) throw err;
+		// console.log(results)
+
 		var query = [
 			'MATCH (n)-[]->(m)-[]->(n)',
 			'RETURN n,m'
 		].join('\n');
 
-		db.query(query, params, function(err, bidirectional) {
-
-			
+		db.cypher({
+			query: query,
+			params: params
+		}, function(err, bidirectional) {
+			if (err) throw err;
+			console.log(bidirectional)
 			// Reformat Relationships to d3 format.
 			var newRelationships = {}
 			var relationshipsObj = results.forEach(function(obj) {
 				var rObj = {};
-				rObj.source = utils.getEndPointString(obj.r._data.start);
-				rObj.target = utils.getEndPointString(obj.r._data.end);
-				rObj.type = obj.r._data.type;
+				rObj.source = obj.r0._fromId;
+				rObj.target = obj.r0._toId;
+				rObj.type = obj.r0.type;
 				var id = rObj.source + '_' + rObj.target;
 				newRelationships[id] = rObj;
 			});
 
 			// console.log(bidirectional)
 			bidirectional.forEach(function(each) {
-				console.log(each.n._data.metadata.id)
-				console.log(each.m._data.metadata.id)
-				newRelationships[each.n._data.metadata.id + '_' + each.m._data.metadata.id].bidirectional = true;
-				newRelationships[each.m._data.metadata.id + '_' + each.n._data.metadata.id].bidirectional = true;
+				console.log(each.n._id)
+				console.log(each.m._id)
+				newRelationships[each.n._id + '_' + each.m._id].bidirectional = true;
+				newRelationships[each.m._id + '_' + each.n._id].bidirectional = true;
 			})
 			reformattedRelationships = _.map(newRelationships, function(val) { return val;});
 			console.log(reformattedRelationships)
@@ -58,9 +66,9 @@ Neo4jHandler.prototype.getNodesandRelationships = function(res, user) {
 			var nodes = {};
 			results.forEach(function(obj) {
 				// console.log(obj.n._data)
-				var id = obj.n._data.metadata.id;
-				var prop = obj.n._data.data;
-				prop['labels'] = obj.n._data.metadata.labels[0];
+				var id = obj.n._id;
+				var prop = obj.n.properties;
+				prop['labels'] = obj.n.labels[0];
 				prop['id'] = id;
 				if (!nodes[id]) nodes[id] = prop;
 			});
@@ -74,32 +82,69 @@ Neo4jHandler.prototype.getNodesandRelationships = function(res, user) {
 			console.log(nodeObject)
 			var nodes = JSON.stringify(nodeObject);
 			res.render('link', { relationships: relationships, nodeObject: nodeObject, nodes: nodes, user: user });
-		})
+		});
 		
 	});
 };
 
 Neo4jHandler.prototype.search = function(res, query, params) {
 
-	db.query(query, params, function(err, results) {
+	db.cypher({
+		query: query,
+		params: params
+	}, function(err, results) {
 		if (err) throw err;
-		console.log(results)
+
 		// Reformat Relationships to d3 format.
-		var reformattedRelationships = results.map(function(obj) {
+		// [r] -- return single Object
+		var reformattedRelationships_r = results.map(function(obj) {
 			var rObj = {};
-			rObj.source = utils.getEndPointString(obj.r._data.start);
-			rObj.target = utils.getEndPointString(obj.r._data.end);
-			rObj.type = obj.r._data.type;
+			rObj.source = obj.r._fromId;
+			rObj.target = obj.r._toId;
+			rObj.type = obj.r.type;
 			return rObj;
 		});
-		// Reformat Nodes to d3 format.
-		// ToDo
-		var nodes = {};
+		var reformattedRelationships_rc = [];
+		// [rc] -- return an Object list
 		results.forEach(function(obj) {
-			var id = obj.n._data.metadata.id;
-			var prop = obj.n._data.data;
+			if (!obj.rc) return null;
+
+			_.each(obj.rc, function(rc) {
+				var rObj = {};
+				rObj.source = rc._fromId;
+				rObj.target = rc._toId;
+				rObj.type = rc.type;
+				reformattedRelationships_rc.push(rObj);
+			});
+			
+		});
+
+		var tempRelationships = _.union(reformattedRelationships_r, reformattedRelationships_rc)
+		var reformattedRelationships = [];
+		_.each(tempRelationships, function(obj) {
+			if (!utils.containsObject(obj, reformattedRelationships) && obj != null) reformattedRelationships.push(obj);
+		});
+
+		// Reformat Nodes to d3 format.
+		var nodes = {};
+		// (child) -- return single Object
+		results.forEach(function(obj) {
+			var id = obj.child._id;
+			var prop = obj.child.properties;
 			prop['id'] = id;
+			prop['labels'] = obj.child.labels[0];
 			if (!nodes[id]) nodes[id] = prop;
+		});
+		// (m) -- return single Object
+		results.forEach(function(obj) {
+			if (!obj.m) return;
+
+			var id = obj.m._id;
+			var prop = obj.m.properties;
+			prop['id'] = id;
+			prop['labels'] = obj.m.labels[0];
+			if (!nodes[id]) nodes[id] = prop;
+
 		});
 
 		// Stringify to json string, when it gets to client side, 
