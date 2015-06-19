@@ -87,6 +87,82 @@ Neo4jHandler.prototype.getNodesandRelationships = function(res, user) {
 	});
 };
 
+/* 
+Neo4jHandler.prototype.constructQueryString
+return [Object]
+Construct cypher query string from the data sent from client.
+*/
+Neo4jHandler.prototype.constructQueryString = function(data) {
+	// Loop through relationship types
+	var where = '(n:' + data.label + ')-[r]-(child)';
+	if (data.relationships){
+		where = data.relationships.map(function(relationshipName) {
+			return '(n:' + data.label + ')-[r:' + relationshipName + ']-(child)';
+		}).join(' OR ');
+	}
+	
+	// Data filters and condition Strings
+	if (data.filters && data.condition) {
+
+		where += ' AND (';
+		var condition = data.condition;
+		switch (condition.toLowerCase()) {
+			case 'all':
+				where += data.filters.map(function(filter) {
+					var key = Object.keys(filter)[0].split('-')[1];
+					return 'n.' + filter['prop-' + key].toLowerCase() + filter['operator-' + key] + '"' + filter['prop_value-' + key] + '"'
+				}).join(' AND ');
+				break;
+			case 'any':
+				where += data.filters.map(function(filter) {
+					var key = Object.keys(filter)[0].split('-')[1];
+					return 'n.' + filter['prop-' + key].toLowerCase() + filter['operator-' + key] + '"' + filter['prop_value-' + key] + '"'
+				}).join(' OR ');
+				break;
+			case 'none':
+				where += 'NOT('
+				where += data.filters.map(function(filter) {
+					var key = Object.keys(filter)[0].split('-')[1];
+					return 'n.' + filter['prop-' + key].toLowerCase() + filter['operator-' + key] + '"' + filter['prop_value-' + key] + '"'
+				}).join(' OR ');
+				where += ')'
+		}
+		
+		where += ')';
+	}
+
+
+	// Optional Match the depth of relationship
+	var queryString = (function(depth) {
+		var matchString;
+		if (depth == "1") {
+			matchString = 'Optional MATCH (x:false)-[rc]-(m)';
+		} else if (depth == "All") {
+			matchString = 'Optional MATCH (child)-[rc*]-(m)';
+		} else {
+			matchString = 'Optional MATCH (child)-[rc*1..' + (parseInt(depth) - 1) + ']-(m)';
+		}
+
+		return {
+			optionalMatchString: matchString
+		};
+	})(data.depth);
+
+	var query = [
+		'MATCH (n)-[r]-(child)',
+		'WHERE ' + where,
+		queryString.optionalMatchString,
+		'RETURN child,r,m,rc'
+	].join('\n');
+
+	return query;
+};
+
+/*
+Neo4jHandler.prototype.search
+return null
+Execute db.cypher and get query result and send to client.
+*/ 
 Neo4jHandler.prototype.search = function(res, query, params) {
 
 	db.cypher({

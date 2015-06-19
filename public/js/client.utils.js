@@ -91,9 +91,9 @@ function loadFilter(nodeTypeValue, filterCounterCollection) {
 			.append('<option><</option>')
 			.append('<option>></option>')
 			.append('<option><=</option>')
-			.append('<option>>=</option>')
-			.append('<option>IS NULL</option>')
-			.append('<option>IS NOT NULL</option>');
+			.append('<option>>=</option>');
+			// .append('<option>IS NULL</option>')
+			// .append('<option>IS NOT NULL</option>');
 
 		val.loaded = true;
 	});
@@ -169,7 +169,7 @@ function removeFilterHandler(removeAll, filterCounterCollection, filterCounter) 
 
 function runQueryHandler(evt) {
 	evt.preventDefault();
-	
+
 	// Get form data
 	var form = $('form#query-builder')[0];
 	var data = getFormData(form);
