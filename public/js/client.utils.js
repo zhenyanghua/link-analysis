@@ -172,6 +172,7 @@ function runQueryHandler(evt) {
 
 	// Get form data
 	var form = $('form#query-builder')[0];
+	var label = $('select#sel-type').val();
 	var data = getFormData(form);
 	// Create a newData object to hold reformmated data
 	var newData = {};
@@ -203,11 +204,12 @@ function runQueryHandler(evt) {
 	// Only add filters to the newData Object if any exists.
 	if(_.size(mergedFilters) > 0) newData['filters'] = mergedFilters;
 	
-	console.log(newData);
-	sendQueryToServer(newData);
+	// console.log(newData);
+	sendQueryToServer(newData, label);
 }
 
-function sendQueryToServer(data) {
+function sendQueryToServer(data, keyword) {
+	loadingHandler();
 	$.ajax({
 		url: '/run-query',
 		type: 'POST',
@@ -216,7 +218,7 @@ function sendQueryToServer(data) {
 	})
 	.done(function(data) {
 		console.log("success");
-		updatePanel(data);
+		updatePanel(data, keyword);
 	})
 	.fail(function() {
 		console.log("error");
@@ -225,4 +227,24 @@ function sendQueryToServer(data) {
 		console.log("complete");
 	});
 	
+}
+
+function loadingHandler() {
+	force.stop();
+	// $('#svg-container').empty();
+	waitingDialog.show('Looking for relationships ...', {dialogSize: 'sm', progressType: 'warning'});
+}
+
+function highlightNode(d, keyword) {
+	// console.log(d)
+	if (!keyword) return;
+
+	var color;
+
+	_.each(d, function(prop) {
+		if (prop != keyword) return;
+		console.log(d)
+		color = 'rgb(255, 204, 0)';
+	})
+	return color;
 }

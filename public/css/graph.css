@@ -1,0 +1,91 @@
+/*
+	graph.css
+	SVG style rules
+*/
+.node {
+	fill: rgba(88, 155, 208, 1.0);
+	stroke: #FFFFFF;
+	stroke-width: 1px;
+}
+.link {
+	fill: none;
+	stroke: #666;
+	stroke-width: 1px;
+}
+#default {
+	fill: #ccc;
+}
+#KNOWS {
+	fill: rgba(255, 0, 255, 1.0);
+}
+#VICTIMIZED {
+	fill: rgba(255, 75, 68, 1.0);
+}
+#CHARGED {
+	fill: rgba(0, 204, 153, 1.0);
+}
+#TALKEDTO {
+	fill: rgba(0, 0, 255, 1.0);
+}
+#COMMITTED {
+	fill: rgba(163, 71, 71, 1.0);
+}
+#RECORDED {
+	fill: rgba(0, 153, 0, 1.0);
+}
+#STOLEN {
+	fill: rgba(153, 153, 102, 1.0);
+}
+#HAPPENED {
+	fill: rgba(255, 102, 0, 1.0);
+}
+.link.default {
+	stroke: #ccc;
+}
+.link.KNOWS {
+	stroke: rgba(255, 0, 255, 1.0);
+}
+.link.VICTIMIZED {
+	stroke: rgba(255, 75, 68, 1.0);
+}
+.link.CHARGED {
+	stroke: rgba(0, 204, 153, 1.0);
+}
+.link.TALKEDTO {
+	stroke: rgba(0, 0, 255, 1.0);
+}
+.link.COMMITTED {
+	stroke: rgba(163, 71, 71, 1.0);
+}
+.link.RECORDED {
+	stroke: rgba(0, 153, 0, 1.0);
+}
+.link.STOLEN {
+	stroke: rgba(153, 153, 102, 1.0);
+}
+.link.HAPPENED {
+	stroke: rgba(255, 102, 0, 1.0);
+}
+path.textpath {
+	fill: none;
+	stroke: rgba(0,0,0,0.01);
+	stroke-width: 11px;
+}
+
+circle {
+	fill: rgba(88, 155, 208, 1.0);
+	stroke: #FFFFFF;
+	stroke-width: 1.5px;
+}
+text {
+	font: 8px sans-serif;
+	pointer-events: none;
+	/* Adding text-shadow will extremely slow down the performance of the graph */
+	/*text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;*/
+}
+text.shadow {
+	font-weight: lighter;
+	stroke: #999;
+	stroke-width: 0.4px;
+	stroke-opacity: .8;
+}

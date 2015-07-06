@@ -152,7 +152,7 @@ Neo4jHandler.prototype.constructQueryString = function(data) {
 		'MATCH (n)-[r]-(child)',
 		'WHERE ' + where,
 		queryString.optionalMatchString,
-		'RETURN child,r,m,rc'
+		'RETURN DISTINCT child,r,m,rc'
 	].join('\n');
 
 	return query;
@@ -205,6 +205,8 @@ Neo4jHandler.prototype.search = function(res, query, params) {
 		var nodes = {};
 		// (child) -- return single Object
 		results.forEach(function(obj) {
+			if (!obj.child) return;
+
 			var id = obj.child._id;
 			var prop = obj.child.properties;
 			prop['id'] = id;

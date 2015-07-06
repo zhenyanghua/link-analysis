@@ -62,38 +62,10 @@ module.exports = function(app, passport) {
 		// Prevent Script Injection
 		var keyword = req.body.name.replace(/['"*]+/g, '');
 		var query = [
-			'MATCH (person:Person { name: "' + keyword + '" })-[r]-(n)',
-			'RETURN n, r'
-		].join('\n');
-
-		var params = {};
-
-		neo4jHandler.search(res, query, params);
-	});
-
-	app.post('/search-where', function(req, res) {
-		console.log(req.body.from);
-		// Prevent Script Injection
-		var keyword = req.body.from.replace(/['"*]+/g, '');
-
-		var query = [
-			'MATCH (person:Person { from: "' + keyword + '" })-[r]-(n:Person { from: "' + keyword + '" })',
-			'RETURN n, r'
-		].join('\n');
-
-		var params = {};
-
-		neo4jHandler.search(res, query, params);
-	});
-
-	app.post('/search-related-where', function(req, res) {
-		console.log(req.body.from);
-		// Prevent Script Injection
-		var keyword = req.body.from.replace(/['"*]+/g, '');
-
-		var query = [
-			'MATCH (person:Person { from: "' + keyword + '" })-[r]-(n)',
-			'RETURN n, r'
+			'MATCH (n:Person)-[r]-(child)',
+			'WHERE n.firstname = "' + keyword + '" OR n.lastname = "' + keyword + '"',
+			'Optional MATCH (child)-[rc*]-(m)',
+			'RETURN DISTINCT child,r,m,rc'
 		].join('\n');
 
 		var params = {};

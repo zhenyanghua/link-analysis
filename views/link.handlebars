@@ -1,116 +1,7 @@
 {{#section 'head'}}
-	<style>
-		body {
-			padding: 10px;
-			word-wrap: break-word;
-		}
-		a {
-			color: #333;
-		}
-		.inline {
-			display: inline-flex;
-		}
-		#reset-view {
-			right: 40px;
-			position: absolute;
-			margin-top: -5px;
-		}
-	</style>
-
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/graph.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
-	<style>
-		.node {
-			fill: rgba(88, 155, 208, 1.0);
-			stroke: #FFFFFF;
-			stroke-width: 1px;
-		}
-		.link {
-			fill: none;
-			stroke: #666;
-			stroke-width: 1px;
-		}
-		#default {
-			fill: #ccc;
-		}
-		#KNOWS {
-			fill: rgba(255, 0, 255, 1.0);
-		}
-		#VICTIMIZED {
-			fill: rgba(255, 75, 68, 1.0);
-		}
-		#CHARGED {
-			fill: rgba(0, 204, 153, 1.0);
-		}
-		#TALKEDTO {
-			fill: rgba(0, 0, 255, 1.0);
-		}
-		#COMMITTED {
-			fill: rgba(163, 71, 71, 1.0);
-		}
-		#RECORDED {
-			fill: rgba(0, 153, 0, 1.0);
-		}
-		#STOLEN {
-			fill: rgba(153, 153, 102, 1.0);
-		}
-		#HAPPENED {
-			fill: rgba(255, 102, 0, 1.0);
-		}
-		.link.default {
-			stroke: #ccc;
-		}
-		.link.KNOWS {
-			stroke: rgba(255, 0, 255, 1.0);
-		}
-		.link.VICTIMIZED {
-			stroke: rgba(255, 75, 68, 1.0);
-		}
-		.link.CHARGED {
-			stroke: rgba(0, 204, 153, 1.0);
-		}
-		.link.TALKEDTO {
-			stroke: rgba(0, 0, 255, 1.0);
-		}
-		.link.COMMITTED {
-			stroke: rgba(163, 71, 71, 1.0);
-		}
-		.link.RECORDED {
-			stroke: rgba(0, 153, 0, 1.0);
-		}
-		.link.STOLEN {
-			stroke: rgba(153, 153, 102, 1.0);
-		}
-		.link.HAPPENED {
-			stroke: rgba(255, 102, 0, 1.0);
-		}
-		path.textpath {
-			fill: none;
-			stroke: rgba(0,0,0,0.01);
-			stroke-width: 11px;
-		}
-
-		circle {
-			fill: rgba(88, 155, 208, 1.0);
-			stroke: #FFFFFF;
-			stroke-width: 1.5px;
-		}
-		text {
-			font: 8px sans-serif;
-			pointer-events: none;
-			/* Adding text-shadow will extremely slow down the performance of the graph */
-			/*text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;*/
-		}
-		text.shadow {
-			font-weight: lighter;
-			stroke: #999;
-			stroke-width: 0.4px;
-			stroke-opacity: .8;
-		}
-		#context-menu {
-			position: absolute;
-			width: 130px;
-		}
-	</style>
 {{/section}}
 
 <div class="container">
@@ -135,18 +26,52 @@
 			<div class="well">
 				<h3><span class="fa fa-tasks"></span> Tasks</h3>
 				<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+					<!-- Search Panel -->
+					<div class="panel panel-default">
+						<!-- Search Panel header -->
+						<div class="panel-heading" id="headingSearch" role="tab">
+							<h4 class="panel-title inline">
+								<div>
+									<span class="fa fa-search"></span> <a class="collapsed" href="#collpaseSearch" data-toggle="collapse" data-parent="#accordion" aria-expanded="true" aria-controls="collpaseSearch">
+										Quick Search
+									</a>
+								</div>
+								<div id="reset-view">
+									<a href="#" class="btn" role="button" data-toggle="tooltip" title="Reset the data" data-placement="left">
+										<span class="fa fa-undo"></span>
+									</a>
+								</div>							
+								
+							</h4>
+						</div>
+						<div id="collpaseSearch" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingSearch">
+							<ul class="list-group">
+								<!-- Q1 -->
+								<li class="list-group-item">
+									<h5>Look for a person ...</h5>
+									<div class="input-group">
+										<input type="text" class="form-control" placeholder="Name: e.g. Emil">
+										<!-- <input type="text" class="form-control" placeholder="Name: e.g. Emil" data-provide="typeahead"> -->
+										<div class="input-group-btn">
+											<button id="btn-search-related" class="btn btn-default" type="button">Go</button>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
 					<!-- Query Builder Panel -->
 					<div class="panel panel-default">
 						<div class="panel-heading" id="headingQuery" role="tab">
 							<h4 class="panel-title inline">
 								<div>
-									<span class="fa fa-sliders"></span> <a class="collapsed" href="#collpaseQuery" data-toggle="collapse" data-parent="#accordion" aria-expanded="true" aria-controls="collpaseQuery">
+									<span class="fa fa-sliders"></span> <a href="#collpaseQuery" data-toggle="collapse" data-parent="#accordion" aria-expanded="false" aria-controls="collpaseQuery">
 										Query Builder
 									</a>
 								</div>	
 							</h4>
 						</div>
-						<div id="collpaseQuery" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingQuery">
+						<div id="collpaseQuery" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingQuery">
 							<!-- Query Builder -->
 							<li class="list-group-item">
 								<form role="form" id="query-builder">
@@ -167,59 +92,6 @@
 							</li>
 						</div>
 					</div>	
-					<!-- Search Panel -->
-					<div class="panel panel-default">
-						<!-- Search Panel header -->
-						<div class="panel-heading" id="headingSearch" role="tab">
-							<h4 class="panel-title inline">
-								<div>
-									<span class="fa fa-search"></span> <a href="#collpaseSearch" data-toggle="collapse" data-parent="#accordion" aria-expanded="false" aria-controls="collpaseSearch">
-										Search
-									</a>
-								</div>
-								<div id="reset-view">
-									<a href="#" class="btn" role="button" data-toggle="tooltip" title="Reset the data" data-placement="left">
-										<span class="fa fa-undo"></span>
-									</a>
-								</div>							
-								
-							</h4>
-						</div>
-						<div id="collpaseSearch" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSearch">
-							<ul class="list-group">
-								<!-- Q1 -->
-								<li class="list-group-item">
-									<h5>Who are related to ...?</h5>
-									<div class="input-group">
-										<input type="text" class="form-control" placeholder="Name: e.g. Emil" data-provide="typeahead">
-										<div class="input-group-btn">
-											<button id="btn-search-related" class="btn btn-default" type="button">Go</button>
-										</div>
-									</div>
-								</li>
-								<!-- Q2 -->
-								<li class="list-group-item">
-									<h5>What are the relationships between people from ...?</h5>
-									<div class="input-group">
-										<input type="text" class="form-control" placeholder="Place: e.g. Sweden" data-provide="typeahead">
-										<div class="input-group-btn">
-											<button id="btn-search-where" class="btn btn-default" type="button">Go</button>
-										</div>
-									</div>
-								</li>
-								<!-- Q3 -->
-								<li class="list-group-item">
-									<h5>Who are related to people from ...?</h5>
-									<div class="input-group">
-										<input type="text" class="form-control" placeholder="Place: e.g. Sweden" data-provide="typeahead">
-										<div class="input-group-btn">
-											<button id="btn-search-related-where" class="btn btn-default" type="button">Go</button>
-										</div>
-									</div>
-								</li>
-							</ul>
-						</div>
-					</div>
 					<!-- Edit Panel -->
 					<div class="panel panel-default">
 						<div class="panel-heading" id="headingEdit" role="tab">
@@ -243,7 +115,7 @@
 
 				<ul class="nav nav-tabs" role="tablist">
 					<li role="presentation" class="active"><a href="#graph" aria-controls="graph" role="tab" data-toggle="tab">Graph</a></li>
-					<li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab">Table</a></li>
+					<li role="presentation"><a href="#table-panel" aria-controls="table" role="tab" data-toggle="tab">Table</a></li>
 				</ul>
 
 				<div id="viz-container" class="tab-content">
@@ -252,22 +124,7 @@
 						<div id="svg-container"></div>
 					</div>
 					<!-- Table Panel -->
-					<div role="tabpanel" class="tab-pane" id="table">
-						<table class="table table-striped">
-							<tr>
-								<th>Id</th>
-								<th>Name</th>
-								<th>From</th>
-							</tr>
-							{{#each nodeObject}}
-								<tr>
-									<td>{{ id }}</td>
-									<td>{{ name }}</td>
-									<td>{{ from }}</td>
-								</tr>
-							{{/each}}
-						</table>
-					</div>
+					<div role="tabpanel" class="tab-pane" id="table-panel"></div>
 				</div>
 				
 			</div>
@@ -284,18 +141,26 @@
 	<!-- RightClick Context Menu -->
 	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/flick/jquery-ui.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+	<!-- Table View -->
+	<script src="lib/jquery.bootgrid.css"></script>
+	<script src="lib/jquery.bootgrid.min.js"></script>
+	<script src="lib/jquery.bootgrid.fa.js"></script>
+
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
 	<script src="lib/bootstrap3-typeahead.min.js"></script>
+
 	<script src="lib/get-form-data.js"></script>
+	<script src="lib/bootstrap-waitingfor.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
 	<script src="models/person.js"></script>
 	<script src="collections/people.js"></script>
 	<script src="collections/models.js"></script>
+	<script src="js/client.prototype.js"></script>
 	<script src="js/client.utils.js"></script>
-	<!-- Visualization Script -->
+	
+	<!-- Visualization Script - Must be placed as embedded script.-->
 	<script>
-	// $('document').ready(function() {
 		console.log({{{relationships}}});
 		console.log({{{nodes}}});
 
@@ -305,9 +170,7 @@
 		$('[data-toggle="tooltip"]').tooltip({container: 'body'})
 
 		// Load typeahead autocomplete
-		$('#btn-search-related').parent().siblings().typeahead({ source: _.pluck({{{nodes}}},'name') });
-		$('#btn-search-where').parent().siblings().typeahead({ source: _.uniq(_.pluck({{{nodes}}},'from')) });
-		$('#btn-search-related-where').parent().siblings().typeahead({ source: _.uniq(_.pluck({{{nodes}}},'from')) });
+		// $('#btn-search-related').parent().siblings().typeahead({ source: _.pluck({{{nodes}}},'name') });
 		
 		// Reset Data
 		var links = {{{relationships}}};
@@ -330,9 +193,11 @@
 			path_label;
 
 		loadSvg(nodes, links, false);
+		updateTable(_.values(nodes));
 
 		// Search People Controller
 		$('#reset-view').on('click', function() {
+			loadingHandler();
 			var people = new PeopleCollection();
 
 			people.fetch({
@@ -348,7 +213,8 @@
 		});
 
 		$('#btn-search-related').on('click', function() {
-			var nameField = $(this).parent().siblings().val();
+			loadingHandler();
+			var nameField = $(this).parent().siblings().val().capitalize();
 			
 			// Create new RelatedCollection.
 			var related = new RelatedCollection();
@@ -358,50 +224,14 @@
 				data: { name: nameField },
 				success: function() {
 					var data = related.toJSON()[0];
-					updatePanel(data);
+					updatePanel(data, nameField);
 				},
 				error: function(err) {
 					console.log("Error--", err);
 				}
 			});
 		});
-		$('#btn-search-where').on('click', function() {
-			var fromField = $(this).parent().siblings().val();
-
-			// Create new RelatedWhereCollection.
-			var where = new WhereCollection();
-
-			where.fetch({
-				method: 'POST',
-				data: { from: fromField },
-				success: function() {
-					var data = where.toJSON()[0];
-					updatePanel(data);
-				},
-				error: function(err) {
-					console.log("Error--", err);
-				}
-			});
-		});
-		$('#btn-search-related-where').on('click', function() {
-			var fromField = $(this).parent().siblings().val();
-
-			// Create new RelatedWhereCollection.
-			var where = new RelatedWhereCollection();
-
-			where.fetch({
-				method: 'POST',
-				data: { from: fromField },
-				success: function() {
-					var data = where.toJSON()[0];
-					updatePanel(data);
-				},
-				error: function(err) {
-					console.log("Error--", err);
-				}
-			});
-		});
-
+		
 		function resetData(links, nodes) {
 			// Compute the distinct nodes from the links.
 			links.forEach(function(link){
@@ -417,9 +247,10 @@
 			})
 		}
 
-		function updatePanel(data) {
+		function updatePanel(data, keyword) {
 			// Reset DOM
 			force.stop();
+			waitingDialog.hide();
 			$('#svg-container').empty();
 
 			// Reset data
@@ -428,21 +259,62 @@
 			resetData(links, nodes);
 
 			// Reload!
-			loadSvg(nodes, links, false);
+			loadSvg(nodes, links, false, keyword);
 
 			// Update Table
-			// var table = $('#table').find('table');
-			// table.empty();
-			// table.append($('<tr>')
-			// 	.append($('<th>').text('Id'))
-			// 	.append($('<th>').text('Name'))
-			// 	.append($('<th>').text('From')));
-			// data.nodeObject.forEach(function(node) {
-			// 	table.append($('<tr>')
-			// 		.append($('<td>').text(node.id))
-			// 		.append($('<td>').text(node.name))
-			// 		.append($('<td>').text(node.from)));
-			// })
+			updateTable(_.values(nodes));
+		}
+
+
+		function updateTable(data) {
+			var groups = [];
+			data.forEach(function(node) {
+				groups.push(_.omit(node, ['name','id','index','weight','x','y','px','py','fixed']));
+
+			});
+			var tables = _.groupBy(groups, 'labels');
+			var tablePanel = $('#table-panel');
+			// console.log(tablePanel)
+			tablePanel.empty();
+
+			_.each(tables, function(table, label) {
+				// console.log(label)
+				tablePanel.append($('<section>').attr('id','table-section-' + label.toLowerCase()).attr('class', 'table-section')
+					.append($('<h4>').text(label)));
+				// Append table for each table group
+				$('#table-section-' + label.toLowerCase()).append($('<table>').attr('id','table-' + label.toLowerCase())
+					.attr('class', 'table table-condensed table-hover'));
+
+				_.each(_.values(table), function(val, i) {
+					// Print out header
+					if (i == 0) {
+						// console.log(_.keys(val));
+						$('#table-' + label.toLowerCase()).append($('<thead>')
+							.append($('<tr>').attr('id', 'table-head-' + label.toLowerCase())));
+						_.each(_.keys(val), function(name) {
+							$('#table-head-' + label.toLowerCase()).append($('<th>')
+								.attr('data-column-id', name)
+								.text(name))
+						});	
+						$('#table-' + label.toLowerCase()).append($('<tbody>')
+							.attr('id', 'table-body-' + label.toLowerCase()));
+					}
+					// console.log(_.values(val));
+
+					$('#table-body-' + label.toLowerCase()).append($('<tr>').attr('id', 'table-body-' + label.toLowerCase() + '-' + i));
+
+					_.each(_.values(val), function(name) {
+						$('#table-body-' + label.toLowerCase() + '-' + i).append($('<td>')
+							.text(name));
+					});			
+				});
+				$('#table-' + label.toLowerCase()).bootgrid({
+					templates: {
+						search: '',
+						header: label
+					}
+				});
+			});
 		}
 
 		$(window).on('resize', resizeSvg);
@@ -451,7 +323,7 @@
 			svg.attr('width', $('#viz-container').width());
 		}
 		
-		function loadSvg(_nodes, _links, ifFixed){
+		function loadSvg(_nodes, _links, ifFixed, keyword){
 			force = d3.layout.force()
 				.nodes(d3.values(_nodes))
 				.links(_links)
@@ -540,6 +412,9 @@
 			circle.append('circle')
 				.attr('r', NODE_RADIUS)
 				.attr('class', 'circle-background')
+				.style('fill', function(d) {
+						return highlightNode(d, keyword)
+					})
 				.classed('fixed', function(d) { d.fixed = ifFixed; })	
 
 			circle.append('circle')
@@ -547,6 +422,9 @@
 				.attr('id', function(d, i) { return 'node_' + i; })
 				.attr('name', function(d) { return d.name; })
 				.attr('class', 'node')
+				.style('fill', function(d) {
+						return 	highlightNode(d, keyword)
+					})
 				.classed('fixed', function(d) { d.fixed = ifFixed; })
 				
 
@@ -665,7 +543,8 @@
   				dragInitiated = true;   
   				force.stop();         
 			} else if (d3.event.sourceEvent.which == 3) {
-				makeForceContextMenu(d, thisTarget);
+				// Context menu
+				// makeForceContextMenu(d, thisTarget);
 			}
 		}
 
@@ -756,7 +635,6 @@
 				left: left
 			};
 		};
-	// });
 	</script>
 {{/section}}
 

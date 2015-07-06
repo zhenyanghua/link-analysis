@@ -1,0 +1,58 @@
+/*
+	style.css
+	Page Style Rules
+*/
+body {
+	padding: 10px;
+	word-wrap: break-word;
+}
+a {
+	color: #333;
+}
+.inline {
+	display: inline-flex;
+}
+#reset-view {
+	right: 40px;
+	position: absolute;
+	margin-top: -5px;
+}
+#context-menu {
+	position: absolute;
+	width: 130px;
+}
+.table-section {
+	padding: 10px;
+}
+.table-section:nth-child(even) {
+	background-color: #F5FAFF;
+}
+.table-section:nth-child(even)>table.table-hover>tbody>tr:hover {
+	background-color: #FFFFFF;
+}
+.table-section:nth-child(odd) {
+	background-color: #FFFFFF;
+}
+.table-section:nth-child(odd)>table.table-hover>tbody>tr:hover {
+	background-color: #F5FAFF;
+}
+table {
+	font-size: 14px;
+}
+.pagination {
+	font-size: 12px;
+	margin: 5px 0 20px 0;
+}
+.pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover {
+	background-color: #ddd;
+	border-color: #ddd;
+}
+.pagination>li>a, .pagination>li>span {
+	padding: 2px 8px;	
+}
+.infos {
+	font-size: 12px;
+	font-style: oblique;
+	text-align: right;
+	color: #999999;
+}
