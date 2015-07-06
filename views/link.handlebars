@@ -397,26 +397,26 @@
 				.enter().append('g')
 					.attr('class', 'circle')
 					.call(drag)
-					.on('mouseover', function() {
+					.on('mouseover', function(d) {
 						d3.select(this.getElementsByClassName('circle-background')[0])
 							.attr('r', NODE_RADIUS * 1.7)
 							.style('fill', 'rgba(0, 153, 255, 0.2)')
 							.style('stroke','rgba(0, 153, 255, 0.2)');
+							openTooltipOnFeature(d);
 					})
-					.on('mouseout', function() {
+					.on('mouseout', function(d) {
 						d3.select(this.getElementsByClassName('circle-background')[0])
 							.attr('r', NODE_RADIUS)
 							.style('fill', 'rgba(0, 0, 0, 0.01)')
 							.style('stroke','rgba(0,0,0,0.01)');
+							closeTooltipOnFeature(d);
 					})
+			// Background Circle
 			circle.append('circle')
 				.attr('r', NODE_RADIUS)
 				.attr('class', 'circle-background')
-				.style('fill', function(d) {
-						return highlightNode(d, keyword)
-					})
 				.classed('fixed', function(d) { d.fixed = ifFixed; })	
-
+			// Circle
 			circle.append('circle')
 				.attr('r', NODE_RADIUS)
 				.attr('id', function(d, i) { return 'node_' + i; })

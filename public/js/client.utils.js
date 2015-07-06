@@ -231,7 +231,6 @@ function sendQueryToServer(data, keyword) {
 
 function loadingHandler() {
 	force.stop();
-	// $('#svg-container').empty();
 	waitingDialog.show('Looking for relationships ...', {dialogSize: 'sm', progressType: 'warning'});
 }
 
@@ -243,8 +242,31 @@ function highlightNode(d, keyword) {
 
 	_.each(d, function(prop) {
 		if (prop != keyword) return;
-		console.log(d)
 		color = 'rgb(255, 204, 0)';
 	})
 	return color;
+}
+
+function openTooltipOnFeature(d) {
+
+	$('#hover-tooltip').stop();
+	$('#hover-tooltip').show();
+
+	var entries = _.omit(d, ['name','id','index','weight','x','y','px','py','fixed']);
+
+	var content = [];
+	_.each(entries, function(val, key) {
+		content.push("<div class='tooltip-paragraph' align='left'><span class='thin-tooltip-label capitalize'>" + key + ": </span><span class='highlight'>" + val + "</span></div>")
+	})
+	var contentString = content.join('');
+	$(".dialog-title").html(contentString);
+
+	var svgPosition = cumulativeOffset($('#svg-container')[0]);
+	$('#hover-tooltip').css('top', svgPosition.top + d.y - $('#hover-tooltip').height() - 5)
+		.css('left', svgPosition.left + d.x);	
+}
+
+function closeTooltipOnFeature(d) {
+	$('#hover-tooltip').stop();
+	$("#hover-tooltip").fadeOut(100);
 }
