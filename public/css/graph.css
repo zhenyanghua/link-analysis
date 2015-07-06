@@ -136,3 +136,14 @@ text.shadow {
 .highlight {
 	color: rgba(88, 155, 208, 1.0);
 }
+
+#context-menu {
+	position: absolute;
+	max-width: 130px;
+	font-size: 0.7em;
+}
+/*#context-menu>ul>li:hover {
+	background-image: none;
+	background-color: #F5FAFF;
+	color: #333;
+}*/

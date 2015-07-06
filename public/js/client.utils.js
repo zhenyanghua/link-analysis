@@ -234,7 +234,7 @@ function loadingHandler() {
 	waitingDialog.show('Looking for relationships ...', {dialogSize: 'sm', progressType: 'warning'});
 }
 
-function highlightNode(d, keyword) {
+function highlightQueriedNode(d, keyword, me) {
 	// console.log(d)
 	if (!keyword) return;
 
@@ -243,6 +243,11 @@ function highlightNode(d, keyword) {
 	_.each(d, function(prop) {
 		if (prop != keyword) return;
 		color = 'rgb(255, 204, 0)';
+
+		d3.select($(me).siblings()[0])
+			.attr('r', NODE_RADIUS * 3)
+			.style('fill', 'rgba(0, 153, 255, 0.2)')
+			.style('stroke','rgba(0, 153, 255, 0.2)');
 	})
 	return color;
 }

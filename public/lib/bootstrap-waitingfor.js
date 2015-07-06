@@ -12,7 +12,7 @@ var waitingDialog = waitingDialog || (function ($) {
 		'<div class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">' +
 		'<div class="modal-dialog modal-m">' +
 		'<div class="modal-content">' +
-			'<div class="modal-header"><h4 style="margin:0;"></h4></div>' +
+			'<div class="modal-header"><h5 style="margin:0; color:#333;"></h5></div>' +
 			'<div class="modal-body">' +
 				'<div class="progress progress-striped active" style="margin-bottom:0;"><div class="progress-bar" style="width: 100%"></div></div>' +
 			'</div>' +
@@ -46,7 +46,7 @@ var waitingDialog = waitingDialog || (function ($) {
 			if (settings.progressType) {
 				$dialog.find('.progress-bar').addClass('progress-bar-' + settings.progressType);
 			}
-			$dialog.find('h4').text(message);
+			$dialog.find('h5').text(message);
 			// Adding callbacks
 			if (typeof settings.onHide === 'function') {
 				$dialog.off('hidden.bs.modal').on('hidden.bs.modal', function (e) {

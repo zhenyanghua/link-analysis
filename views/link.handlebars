@@ -33,7 +33,7 @@
 							<h4 class="panel-title inline">
 								<div>
 									<span class="fa fa-search"></span> <a class="collapsed" href="#collpaseSearch" data-toggle="collapse" data-parent="#accordion" aria-expanded="true" aria-controls="collpaseSearch">
-										Quick Search
+										General Search
 									</a>
 								</div>
 								<div id="reset-view">
@@ -50,7 +50,7 @@
 								<li class="list-group-item">
 									<h5>Look for a person ...</h5>
 									<div class="input-group">
-										<input type="text" class="form-control" placeholder="Name: e.g. Emil">
+										<input type="text" class="form-control" placeholder="e.g. Rick">
 										<!-- <input type="text" class="form-control" placeholder="Name: e.g. Emil" data-provide="typeahead"> -->
 										<div class="input-group-btn">
 											<button id="btn-search-related" class="btn btn-default" type="button">Go</button>
@@ -423,7 +423,7 @@
 				.attr('name', function(d) { return d.name; })
 				.attr('class', 'node')
 				.style('fill', function(d) {
-						return 	highlightNode(d, keyword)
+						return 	highlightQueriedNode(d, keyword, this);
 					})
 				.classed('fixed', function(d) { d.fixed = ifFixed; })
 				
@@ -437,7 +437,7 @@
 			// 	.attr('class', 'node')
 			// 	.classed('fixed', function(d) { d.fixed = ifFixed; })
 			// 	.call(drag)
-				// .on('mouseenter', openTooltipOnFeature)
+				// .on('mouseover', openTooltipOnFeature)
 				// .on('mouseout', closeTooltipOnFeature)
 				// 	.append('image')
 				// 	.attr("xlink:href", function(d) {
@@ -544,7 +544,7 @@
   				force.stop();         
 			} else if (d3.event.sourceEvent.which == 3) {
 				// Context menu
-				// makeForceContextMenu(d, thisTarget);
+				makeForceContextMenu(d, thisTarget);
 			}
 		}
 
@@ -580,32 +580,35 @@
 			// Supress default contextmenu
 			d3.select(this).node().oncontextmenu = function(){ return false; };
 
+			// Close tooltip
+			closeTooltipOnFeature(d);
+
 			$('#menu').menu('destroy');
 			$('#context-menu').empty();
 			$('#context-menu').append($('<ul>').attr('id','menu')
-				.append($('<li>').attr('id','break-link-item').text('Break Link'))
+				// .append($('<li>').attr('id','break-link-item').text('Break Link'))
 				.append($('<li>').attr('id','unpin-node-item').text('Unpin Node'))
-				.append($('<li>').attr('id','show-photo-item')
-					.append($('<label>').text('Show Photo'))
-					.append($('<input>').attr('type','checkbox').attr('id','showPhotoSwitch')
-						.attr('checked', (d.hasOwnProperty('photoIsOn')?d.photoIsOn:false)))
-					)
+				// .append($('<li>').attr('id','show-photo-item')
+				// 	.append($('<label>').text('Show Photo'))
+				// 	.append($('<input>').attr('type','checkbox').attr('id','showPhotoSwitch')
+				// 		.attr('checked', (d.hasOwnProperty('photoIsOn')?d.photoIsOn:false)))
+				// 	)
 				)
 			$('#menu').menu({
 				select: function(event, ui) {
 					switch (ui.item.attr('id')) {
-						case 'break-link-item':
-							console.log('Break Link Selected');
-							removeLink(d);
-							update();
-							break;
+						// case 'break-link-item':
+						// 	console.log('Break Link Selected');
+						// 	removeLink(d);
+						// 	update();
+						// 	break;
 						case 'unpin-node-item':
 							console.log('Unpin Selected');
 							dblclick(d, thisTarget);
 							break;
-						case 'show-photo-item':
-							console.log('Show Photo Selected');
-							togglePhoto(thisTarget, d)
+						// case 'show-photo-item':
+						// 	console.log('Show Photo Selected');
+						// 	togglePhoto(thisTarget, d)
 					}
 				}
 			});
@@ -618,9 +621,12 @@
 			$(document).on('click', destroyContextMenu);
 		}
 		function destroyContextMenu() {
+			d3.select(window).node().oncontextmenu = function(){ return true; };
 			$('#menu').menu('destroy');
 			$('#context-menu').empty();
-			$(document).off('click');
+			// $(document).off('click');
+
+
 		}
 		function cumulativeOffset(element) {
 			var top = 0, left = 0;
