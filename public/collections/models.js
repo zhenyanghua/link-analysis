@@ -68,7 +68,7 @@ MODELS = [
 			"KNOWS"
 		],
 		properties: [
-			"FistName",
+			"FirstName",
 			"LastName",
 			"Alias",
 			"Gender"
